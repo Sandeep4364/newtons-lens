@@ -31,12 +31,14 @@ function App() {
 
       if (experiment.error) throw experiment.error;
 
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      const response = await fetch(`${backendUrl}/api/analyze`, {
+      const response = await fetch(`${supabaseUrl}/functions/v1/analyze-experiment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${anonKey}`,
         },
         body: JSON.stringify({
           experiment_id: experiment.data.id,
