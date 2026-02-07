@@ -209,7 +209,7 @@ async function analyzeWithGemini(
   try {
     const base64Image = imageData.startsWith("data:image") ? imageData.split(",")[1] : imageData;
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

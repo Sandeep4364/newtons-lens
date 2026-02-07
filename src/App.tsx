@@ -27,9 +27,10 @@ function App() {
           description: 'Analyzed via camera capture',
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (experiment.error) throw experiment.error;
+      if (!experiment.data) throw new Error('Failed to create experiment');
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -57,9 +58,10 @@ function App() {
         .from('analysis_sessions')
         .select('*')
         .eq('id', result.session_id)
-        .single();
+        .maybeSingle();
 
       if (sessionError) throw sessionError;
+      if (!session) throw new Error('Failed to retrieve analysis session');
 
       setCurrentSession(session as AnalysisSession);
     } catch (err) {
