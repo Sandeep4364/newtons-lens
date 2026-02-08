@@ -3,6 +3,7 @@ import { Microscope, BookOpen } from 'lucide-react';
 import { CameraCapture } from './components/CameraCapture';
 import { AnalysisDisplay } from './components/AnalysisDisplay';
 import { ExperimentTypeSelector } from './components/ExperimentTypeSelector';
+import { ManualComponentInput } from './components/ManualComponentInput';
 import { supabase, type AnalysisSession } from './lib/supabase';
 
 function App() {
@@ -72,6 +73,69 @@ function App() {
     }
   };
 
+  const analyzeFromComponents = async (components: string[]) => {
+    setIsAnalyzing(true);
+    setError('');
+    setCapturedImage(null);
+    setCurrentSession(null);
+
+    try {
+      // Create experiment
+      const experiment = await supabase
+        .from('experiments')
+        .insert({
+          title: `${experimentType} experiment (manual)`,
+          experiment_type: experimentType,
+          description: `Manual component list: ${components.join(', ')}`,
+        })
+        .select()
+        .maybeSingle();
+
+      if (experiment.error) throw experiment.error;
+      if (!experiment.data) throw new Error('Failed to create experiment');
+
+      // Call analysis endpoint with component list
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/analyze-from-text`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({
+          experiment_id: experiment.data.id,
+          experiment_type: experimentType,
+          components,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Analysis failed. Please try again.');
+      }
+
+      const result = await response.json();
+
+      // Retrieve session
+      const { data: session, error: sessionError } = await supabase
+        .from('analysis_sessions')
+        .select('*')
+        .eq('id', result.session_id)
+        .maybeSingle();
+
+      if (sessionError) throw sessionError;
+      if (!session) throw new Error('Failed to retrieve analysis session');
+
+      setCurrentSession(session as AnalysisSession);
+    } catch (err) {
+      console.error('Analysis error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during analysis');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <header className="bg-white shadow-sm border-b border-gray-200">
@@ -123,6 +187,17 @@ function App() {
                   <p className="text-red-800 text-sm">{error}</p>
                 </div>
               )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Manual Component Input
+              </h2>
+              <ManualComponentInput
+                experimentType={experimentType}
+                onAnalyze={analyzeFromComponents}
+                isAnalyzing={isAnalyzing}
+              />
             </div>
           </div>
 
