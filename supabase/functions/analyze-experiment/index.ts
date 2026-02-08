@@ -207,7 +207,9 @@ async function analyzeWithGemini(
   }
 
   try {
-    const base64Image = imageData.startsWith("data:image") ? imageData.split(",")[1] : imageData;
+    // Extract base64 data and detect mime type
+    const base64Image = imageData.startsWith("data:") ? imageData.split(",")[1] : imageData;
+    const mimeType = imageData.match(/data:([^;]+);/)?.[1] || "image/jpeg";
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: "POST",
@@ -223,7 +225,7 @@ async function analyzeWithGemini(
               },
               {
                 inline_data: {
-                  mime_type: "image/jpeg",
+                  mime_type: mimeType,
                   data: base64Image,
                 },
               },
@@ -246,7 +248,7 @@ async function analyzeWithGemini(
       return getMockAnalysis(experimentType);
     }
 
-    let cleanedText = analysisText
+    const cleanedText = analysisText
       .replace(/^```json\n?/, "")
       .replace(/^```\n?/, "")
       .replace(/\n?```$/, "")
@@ -307,8 +309,16 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({
         experiment_id: data.experiment_id,
-        analysis_result: analysis,
         image_data: data.image_data.substring(0, 5000),
+        ai_observations: {
+          observations: analysis.observations || '',
+          components_summary: analysis.components?.length || 0
+        },
+        predicted_outcome: analysis.predicted_outcome || '',
+        safety_warnings: analysis.safety_warnings || [],
+        guidance: analysis.guidance || [],
+        confidence_score: analysis.confidence_score || 0.8,
+        status: 'completed'
       }),
     });
 

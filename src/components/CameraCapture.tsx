@@ -68,11 +68,56 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file');
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+      setError('Please select a valid image or video file');
       return;
     }
 
+    // Handle video files
+    if (file.type.startsWith('video/')) {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+
+      if (!context) {
+        setError('Failed to initialize video processing');
+        return;
+      }
+
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+
+      video.onloadedmetadata = () => {
+        // Seek to 1 second or 10% of video duration, whichever is smaller
+        const seekTime = Math.min(1, video.duration * 0.1);
+        video.currentTime = seekTime;
+      };
+
+      video.onseeked = () => {
+        try {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = canvas.toDataURL('image/jpeg', 0.8);
+          onCapture(imageData);
+          URL.revokeObjectURL(video.src);
+        } catch (err) {
+          setError('Failed to extract frame from video');
+          console.error('Video frame extraction error:', err);
+        }
+      };
+
+      video.onerror = () => {
+        setError('Failed to load video file');
+        URL.revokeObjectURL(video.src);
+      };
+
+      video.src = URL.createObjectURL(file);
+      return;
+    }
+
+    // Handle image files
     const reader = new FileReader();
     reader.onload = (e) => {
       const imageData = e.target?.result as string;
@@ -93,7 +138,7 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         onChange={handleFileUpload}
         className="hidden"
       />
@@ -127,7 +172,7 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors"
             >
               <Upload className="w-5 h-5" />
-              Upload Image
+              Upload Image/Video
             </button>
           </div>
         )}

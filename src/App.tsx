@@ -49,7 +49,8 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error('Analysis failed. Please try again.');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `Analysis failed with status ${response.status}`);
       }
 
       const result = await response.json();
