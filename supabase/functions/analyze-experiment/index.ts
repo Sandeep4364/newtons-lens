@@ -246,7 +246,7 @@ async function analyzeWithGemini(
       return getMockAnalysis(experimentType);
     }
 
-    let cleanedText = analysisText
+    const cleanedText = analysisText
       .replace(/^```json\n?/, "")
       .replace(/^```\n?/, "")
       .replace(/\n?```$/, "")

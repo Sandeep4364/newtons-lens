@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 import base64
 from datetime import datetime
@@ -9,6 +11,14 @@ from database import Database
 app = Flask(__name__)
 CORS(app)
 
+# Initialize rate limiter
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
 db = Database()
 analyzer = ExperimentAnalyzer()
 
@@ -17,6 +27,7 @@ def health():
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
 
 @app.route('/api/analyze', methods=['POST'])
+@limiter.limit("10 per minute")
 def analyze_experiment():
     try:
         data = request.get_json()

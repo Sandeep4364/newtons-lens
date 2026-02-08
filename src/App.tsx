@@ -127,7 +127,11 @@ function App() {
           </div>
 
           <div>
-            <AnalysisDisplay session={currentSession} capturedImage={capturedImage} />
+            <AnalysisDisplay 
+              session={currentSession} 
+              capturedImage={capturedImage}
+              isAnalyzing={isAnalyzing}
+            />
           </div>
         </div>
 
