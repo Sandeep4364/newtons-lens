@@ -6,10 +6,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-interface AnalysisRequest {
+interface TextAnalysisRequest {
   experiment_id: string;
   experiment_type: string;
-  image_data: string;
+  components: string[];
 }
 
 interface Component {
@@ -39,45 +39,50 @@ interface AnalysisResult {
   confidence_score: number;
 }
 
-function buildAnalysisPrompt(experimentType: string): string {
+function buildTextAnalysisPrompt(components: string[], experimentType: string): string {
   const basePrompt = `You are Newton's Lens, an expert AI lab assistant for science experiments.
-Analyze this experimental setup image and provide a detailed analysis in JSON format.
+
+The user has provided these components for a ${experimentType} experiment:
+${components.join(', ')}
+
+Analyze this component list and provide a detailed analysis in JSON format.
 
 Your analysis should include:
-1. Components identified in the setup
-2. How components are connected or arranged
+1. What experiment they're likely setting up based on these components
+2. How these components should be connected or arranged
 3. Predicted outcome of the experiment
-4. Safety warnings (if any)
-5. Step-by-step guidance for proper execution
+4. Safety warnings (especially if any components are missing or dangerous combinations exist)
+5. Step-by-step assembly guidance
 6. Confidence score (0-1)
 
 Focus on:`;
 
   const typeSpecific: Record<string, string> = {
     circuits: `
-- Identify electronic components (resistors, LEDs, batteries, wires, breadboards)
-- Check for proper connections and polarity
-- Calculate current and voltage if possible
+- Analyze the electronic components provided
+- Check if proper connections can be made with these components
+- Identify missing critical components (e.g., resistors for LEDs)
 - Warn about short circuits, reverse polarity, or component damage risks
-- Provide guidance on proper circuit assembly`,
+- Provide step-by-step circuit assembly instructions
+- Calculate expected current and voltage if possible`,
 
     chemistry: `
-- Identify chemicals, glassware, and equipment
-- Check for proper safety equipment (gloves, goggles)
-- Warn about dangerous chemical reactions
+- Identify the chemicals and equipment provided
+- Check for missing safety equipment (gloves, goggles)
+- Warn about dangerous chemical reactions or missing safety gear
 - Note proper mixing order and safety precautions
-- Provide guidance on safe chemical handling`,
+- Provide guidance on safe chemical handling and procedure`,
 
     physics: `
-- Identify mechanical components and setup
-- Analyze forces, motion, or energy involved
-- Check for stability and safety of the setup
+- Identify the mechanical components and measurement tools
+- Analyze the type of physics experiment (motion, forces, energy, etc.)
+- Check for stability and safety of the potential setup
 - Predict physical outcomes
-- Provide guidance on measurement and execution`,
+- Provide guidance on measurement techniques and execution`,
 
     general: `
-- Identify all visible components and materials
-- Analyze the experimental setup
+- Identify all components and their likely purpose
+- Analyze the potential experimental setup
 - Provide safety recommendations
 - Suggest proper execution steps`,
   };
@@ -86,13 +91,13 @@ Focus on:`;
 
 Return your analysis as a valid JSON object with this structure:
 {
-  "observations": "Detailed description of what you see",
+  "observations": "Detailed analysis of the component list and likely experiment setup",
   "components": [
     {
-      "type": "component type",
-      "properties": {"key": "value"},
-      "position": "description",
-      "connections": ["connected to"]
+      "type": "component name from the list",
+      "properties": {"relevant": "properties"},
+      "position": "suggested position or role in setup",
+      "connections": ["what this connects to"]
     }
   ],
   "predicted_outcome": "What will happen when this experiment is executed",
@@ -100,16 +105,16 @@ Return your analysis as a valid JSON object with this structure:
     {
       "severity": "low|medium|high|critical",
       "message": "Warning message",
-      "recommendation": "How to fix it"
+      "recommendation": "How to fix it or what to add"
     }
   ],
   "guidance": [
     {
       "step": 1,
-      "instruction": "Step instruction"
+      "instruction": "Step-by-step instruction"
     }
   ],
-  "confidence_score": 0.95
+  "confidence_score": 0.85
 }
 
 Ensure the response is ONLY valid JSON, no additional text.`;
@@ -117,133 +122,120 @@ Ensure the response is ONLY valid JSON, no additional text.`;
   return basePrompt + (typeSpecific[experimentType] || typeSpecific.general) + jsonFormat;
 }
 
-function getMockAnalysis(experimentType: string): AnalysisResult {
-  const mockData: Record<string, AnalysisResult> = {
+function getMockAnalysis(components: string[], experimentType: string): AnalysisResult {
+  const componentsList = components.map((c, idx) => ({
+    type: c,
+    properties: {},
+    position: `Component ${idx + 1}`,
+    connections: [],
+  }));
+
+  const mockData: Record<string, Partial<AnalysisResult>> = {
     circuits: {
-      observations: "I can see a basic electrical circuit with a battery, LED, and wires.",
-      components: [
-        {
-          type: "LED",
-          properties: { color: "red", voltage: "2V" },
-          position: "center of breadboard",
-          connections: ["9V battery positive"],
-        },
-        {
-          type: "9V Battery",
-          properties: { voltage: "9V" },
-          position: "left side",
-          connections: ["LED", "ground wire"],
-        },
-      ],
-      predicted_outcome: "The LED will light up when connected to the battery.",
+      observations: `I can see you have these components: ${components.join(', ')}. This looks like a basic electrical circuit setup.`,
+      predicted_outcome: "The circuit will function when properly connected.",
       safety_warnings: [
         {
-          severity: "high",
-          message: "LED connected without current-limiting resistor",
-          recommendation: "Add a 470Ω resistor in series with the LED.",
+          severity: "medium",
+          message: "Ensure proper component ratings",
+          recommendation: "Check voltage and current ratings before connecting.",
         },
       ],
       guidance: [
-        { step: 1, instruction: "Add a resistor in series with the LED" },
-        { step: 2, instruction: "Connect the circuit properly" },
+        { step: 1, instruction: "Layout components on the breadboard" },
+        { step: 2, instruction: "Make connections following the circuit diagram" },
+        { step: 3, instruction: "Test with a multimeter before powering on" },
       ],
-      confidence_score: 0.85,
     },
     chemistry: {
-      observations: "I can see laboratory glassware and chemicals.",
-      components: [
-        {
-          type: "Beaker",
-          properties: { volume: "250ml" },
-          position: "center of workspace",
-          connections: [],
-        },
-      ],
-      predicted_outcome: "A chemical reaction will occur when components are mixed.",
+      observations: `I can see you have these components: ${components.join(', ')}. Please ensure you have proper safety equipment.`,
+      predicted_outcome: "A chemical reaction will occur when components are properly mixed.",
       safety_warnings: [
         {
           severity: "high",
           message: "Always wear safety equipment",
-          recommendation: "Put on safety goggles and gloves.",
+          recommendation: "Put on safety goggles and gloves before starting.",
         },
       ],
-      guidance: [{ step: 1, instruction: "Put on safety equipment" }],
-      confidence_score: 0.75,
+      guidance: [
+        { step: 1, instruction: "Put on all safety equipment" },
+        { step: 2, instruction: "Prepare the workspace in a ventilated area" },
+        { step: 3, instruction: "Follow proper mixing procedures" },
+      ],
     },
     physics: {
-      observations: "I can see a mechanical setup for motion experiments.",
-      components: [
-        {
-          type: "Inclined plane",
-          properties: { angle: "30 degrees" },
-          position: "center",
-          connections: [],
-        },
-      ],
-      predicted_outcome: "The object will roll down the inclined plane.",
+      observations: `I can see you have these components: ${components.join(', ')}. This appears to be a mechanics experiment.`,
+      predicted_outcome: "The experiment will demonstrate physical principles of motion or forces.",
       safety_warnings: [
         {
           severity: "low",
-          message: "Ensure the ramp is stable",
-          recommendation: "Secure the base of the ramp.",
+          message: "Ensure stable setup",
+          recommendation: "Secure all components before starting the experiment.",
         },
       ],
-      guidance: [{ step: 1, instruction: "Measure the ramp angle" }],
-      confidence_score: 0.8,
+      guidance: [
+        { step: 1, instruction: "Set up the apparatus on a stable surface" },
+        { step: 2, instruction: "Calibrate measurement instruments" },
+        { step: 3, instruction: "Take measurements carefully" },
+      ],
     },
   };
 
-  return mockData[experimentType] || mockData.circuits;
+  const baseData = mockData[experimentType] || mockData.circuits;
+
+  return {
+    observations: baseData.observations || `Components provided: ${components.join(', ')}`,
+    components: componentsList,
+    predicted_outcome: baseData.predicted_outcome || "The experiment will proceed as planned.",
+    safety_warnings: baseData.safety_warnings || [],
+    guidance: baseData.guidance || [],
+    confidence_score: 0.75,
+  };
 }
 
 async function analyzeWithGemini(
-  imageData: string,
+  components: string[],
   experimentType: string
 ): Promise<AnalysisResult> {
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
   if (!geminiKey) {
     console.log("GEMINI_API_KEY not set, using mock analysis");
-    return getMockAnalysis(experimentType);
+    return getMockAnalysis(components, experimentType);
   }
 
   try {
-    const base64Image = imageData.startsWith("data:image") ? imageData.split(",")[1] : imageData;
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: buildAnalysisPrompt(experimentType),
-              },
-              {
-                inline_data: {
-                  mime_type: "image/jpeg",
-                  data: base64Image,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: buildTextAnalysisPrompt(components, experimentType),
                 },
-              },
-            ],
-          },
-        ],
-      }),
-    });
+              ],
+            },
+          ],
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.text();
       console.error("Gemini API error:", errorData);
-      return getMockAnalysis(experimentType);
+      return getMockAnalysis(components, experimentType);
     }
 
     const result = await response.json();
     const analysisText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!analysisText) {
-      return getMockAnalysis(experimentType);
+      return getMockAnalysis(components, experimentType);
     }
 
     const cleanedText = analysisText
@@ -264,7 +256,7 @@ async function analyzeWithGemini(
     };
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    return getMockAnalysis(experimentType);
+    return getMockAnalysis(components, experimentType);
   }
 }
 
@@ -277,10 +269,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const data = (await req.json()) as AnalysisRequest;
+    const data = (await req.json()) as TextAnalysisRequest;
 
-    if (!data.image_data) {
-      return new Response(JSON.stringify({ error: "No image data provided" }), {
+    if (!data.components || data.components.length === 0) {
+      return new Response(JSON.stringify({ error: "No components provided" }), {
         status: 400,
         headers: {
           ...corsHeaders,
@@ -289,7 +281,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const analysis = await analyzeWithGemini(data.image_data, data.experiment_type || "general");
+    const analysis = await analyzeWithGemini(data.components, data.experiment_type || "general");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -308,7 +300,7 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         experiment_id: data.experiment_id,
         analysis_result: analysis,
-        image_data: data.image_data.substring(0, 5000),
+        image_data: '',  // No image for text-based analysis
       }),
     });
 
