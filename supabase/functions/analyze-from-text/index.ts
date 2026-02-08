@@ -299,8 +299,16 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({
         experiment_id: data.experiment_id,
-        analysis_result: analysis,
         image_data: '', // No image for text-based analysis
+        ai_observations: {
+          observations: analysis.observations,
+          components: analysis.components,
+        },
+        predicted_outcome: analysis.predicted_outcome,
+        safety_warnings: analysis.safety_warnings,
+        guidance: analysis.guidance,
+        confidence_score: analysis.confidence_score,
+        status: 'completed',
       }),
     });
 
