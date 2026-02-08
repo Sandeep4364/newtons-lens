@@ -308,18 +308,24 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         experiment_id: data.experiment_id,
         analysis_result: analysis,
-        image_data: data.image_data,
+        image_data: data.image_data.substring(0, 5000),
       }),
     });
 
     if (!supabaseResponse.ok) {
       const errorData = await supabaseResponse.text();
-      console.error("Supabase error:", errorData);
-      throw new Error("Failed to save analysis session");
+      console.error("Supabase error response:", errorData);
+      console.error("Status:", supabaseResponse.status);
+      throw new Error(`Failed to save analysis session: ${supabaseResponse.status}`);
     }
 
     const sessionData = await supabaseResponse.json();
+    console.log("Session data:", sessionData);
     const sessionId = Array.isArray(sessionData) ? sessionData[0]?.id : sessionData.id;
+
+    if (!sessionId) {
+      throw new Error("No session ID returned from Supabase");
+    }
 
     return new Response(
       JSON.stringify({
