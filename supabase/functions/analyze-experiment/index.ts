@@ -300,6 +300,9 @@ Deno.serve(async (req: Request) => {
       throw new Error("Missing Supabase environment variables");
     }
 
+    // Default confidence score when not provided by analysis
+    const DEFAULT_CONFIDENCE_SCORE = 0.8;
+
     const supabaseResponse = await fetch(`${supabaseUrl}/rest/v1/analysis_sessions`, {
       method: "POST",
       headers: {
@@ -317,7 +320,7 @@ Deno.serve(async (req: Request) => {
         predicted_outcome: analysis.predicted_outcome || '',
         safety_warnings: analysis.safety_warnings || [],
         guidance: analysis.guidance || [],
-        confidence_score: analysis.confidence_score || 0.8,
+        confidence_score: analysis.confidence_score || DEFAULT_CONFIDENCE_SCORE,
         status: 'completed'
       }),
     });

@@ -88,9 +88,13 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
       video.muted = true;
       video.playsInline = true;
 
+      // Constants for video frame extraction
+      const MAX_SEEK_TIME_SECONDS = 1;
+      const SEEK_PERCENTAGE = 0.1;
+
       video.onloadedmetadata = () => {
         // Seek to 1 second or 10% of video duration, whichever is smaller
-        const seekTime = Math.min(1, video.duration * 0.1);
+        const seekTime = Math.min(MAX_SEEK_TIME_SECONDS, video.duration * SEEK_PERCENTAGE);
         video.currentTime = seekTime;
       };
 
