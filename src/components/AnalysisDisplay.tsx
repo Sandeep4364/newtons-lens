@@ -44,6 +44,13 @@ export function AnalysisDisplay({ session, capturedImage }: AnalysisDisplayProps
       ? session.ai_observations.observations 
       : null;
 
+  // Check if analysis has any content to display
+  const hasNoContent = 
+    !observations && 
+    !session.predicted_outcome && 
+    (!session.safety_warnings || session.safety_warnings.length === 0) && 
+    (!session.guidance || session.guidance.length === 0);
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
@@ -152,7 +159,7 @@ export function AnalysisDisplay({ session, capturedImage }: AnalysisDisplayProps
           </div>
         )}
 
-        {!observations && !session.predicted_outcome && (!session.safety_warnings || session.safety_warnings.length === 0) && (!session.guidance || session.guidance.length === 0) && (
+        {hasNoContent && (
           <div className="text-center py-8">
             <Info className="w-12 h-12 text-gray-400 mx-auto mb-3" />
             <p className="text-gray-600">
