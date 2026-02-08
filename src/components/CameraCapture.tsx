@@ -69,7 +69,47 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
     onCapture(imageData);
   }, [onCapture]);
 
-  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = useCallback((imageData: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(imageData);
+          return;
+        }
+
+        // Resize to max dimensions while maintaining aspect ratio
+        const MAX_WIDTH = 1280;
+        const MAX_HEIGHT = 720;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = (height * MAX_WIDTH) / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = (width * MAX_HEIGHT) / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Compress to JPEG with 0.8 quality
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.src = imageData;
+    });
+  }, []);
+
+  const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -129,17 +169,52 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
       return;
     }
 
+      return;
+    }
+
+    // Handle video files
+    if (file.type.startsWith('video/')) {
+      const videoElement = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      videoElement.onloadedmetadata = async () => {
+        // Extract frame at 1 second or 10% of duration
+        videoElement.currentTime = Math.min(1, videoElement.duration * 0.1);
+      };
+      
+      videoElement.onseeked = async () => {
+        if (!ctx) return;
+        
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        ctx.drawImage(videoElement, 0, 0);
+        
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+        const compressed = await compressImage(imageData);
+        onCapture(compressed);
+      };
+      
+      videoElement.onerror = () => {
+        setError('Failed to process video file');
+      };
+      
+      videoElement.src = URL.createObjectURL(file);
+      return;
+    }
+
     // Handle image files
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const imageData = e.target?.result as string;
-      onCapture(imageData);
+      const compressed = await compressImage(imageData);
+      onCapture(compressed);
     };
     reader.onerror = () => {
       setError('Failed to read image file');
     };
     reader.readAsDataURL(file);
-  }, [onCapture]);
+  }, [onCapture, compressImage]);
 
   const triggerFileUpload = useCallback(() => {
     fileInputRef.current?.click();

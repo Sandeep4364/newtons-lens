@@ -1,0 +1,55 @@
+{
+  "name": "Newton's Lens",
+  "short_name": "Newton's Lens",
+  "description": "AI Lab Partner That Thinks Before You Act - Analyze science experiments with multimodal AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "science", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshot1.png",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Analyze Circuit",
+      "short_name": "Circuit",
+      "description": "Start analyzing a circuit experiment",
+      "url": "/?type=circuits",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analyze Chemistry",
+      "short_name": "Chemistry",
+      "description": "Start analyzing a chemistry experiment",
+      "url": "/?type=chemistry",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analyze Physics",
+      "short_name": "Physics",
+      "description": "Start analyzing a physics experiment",
+      "url": "/?type=physics",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "app": {
+    "title": "Lente de Newton",
+    "subtitle": "Asistente de Laboratorio IA para Experimentos Científicos",
+    "howItWorks": "Cómo Funciona"
+  },
+  "experimentTypes": {
+    "circuits": "Circuitos y Electrónica",
+    "chemistry": "Química",
+    "physics": "Física y Mecánica",
+    "general": "Ciencias Generales"
+  },
+  "camera": {
+    "startCamera": "Iniciar Cámara",
+    "stopCamera": "Detener Cámara",
+    "uploadImage": "Subir Imagen",
+    "analyzeSetup": "Analizar Configuración",
+    "analyzing": "Analizando...",
+    "tryAgain": "Intentar de Nuevo",
+    "uploadInstead": "Subir en Cambio",
+    "cameraError": "No se puede acceder a la cámara. Por favor conceda permisos de cámara.",
+    "uploadError": "Por favor seleccione un archivo de imagen o video válido"
+  },
+  "analysis": {
+    "noAnalysisYet": "Aún No Hay Análisis",
+    "noAnalysisDescription": "Capture una imagen de su configuración experimental para comenzar con el análisis impulsado por IA.",
+    "analyzingSetup": "Analizando su configuración experimental...",
+    "estimatedTime": "Tiempo estimado",
+    "observations": "Observaciones",
+    "components": "Componentes Detectados",
+    "predictedOutcome": "Resultado Predicho",
+    "safetyWarnings": "Advertencias de Seguridad",
+    "guidance": "Guía Paso a Paso",
+    "confidence": "Puntuación de Confianza"
+  },
+  "severity": {
+    "low": "Bajo",
+    "medium": "Medio",
+    "high": "Alto",
+    "critical": "Crítico"
+  },
+  "guide": {
+    "title": "Cómo Funciona",
+    "step1": {
+      "title": "Seleccionar Tipo",
+      "description": "Elija su categoría de experimento para obtener análisis especializado"
+    },
+    "step2": {
+      "title": "Capturar Configuración",
+      "description": "Use su cámara para fotografiar su configuración experimental"
+    },
+    "step3": {
+      "title": "Análisis IA",
+      "description": "Nuestra IA identifica componentes y predice resultados"
+    },
+    "step4": {
+      "title": "Obtener Orientación",
+      "description": "Reciba advertencias de seguridad e instrucciones paso a paso"
+    }
+  },
+  "video": {
+    "startRealTime": "Iniciar Análisis en Tiempo Real",
+    "liveAnalysis": "ANÁLISIS EN VIVO",
+    "framesAnalyzed": "Fotogramas analizados"
+  },
+  "ar": {
+    "title": "Superposición de Componentes AR",
+    "danger": "Peligro",
+    "caution": "Precaución",
+    "safe": "Seguro"
+  },
+  "voice": {
+    "title": "Instrucciones Guiadas por Voz",
+    "enabled": "Habilitado",
+    "disabled": "Deshabilitado"
+  },
+  "footer": {
+    "tagline": "Lente de Newton - Empoderando a estudiantes con asistencia de laboratorio impulsada por IA"
+  }
+}

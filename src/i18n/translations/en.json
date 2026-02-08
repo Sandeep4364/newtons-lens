@@ -1,0 +1,104 @@
+{
+  "app": {
+    "title": "Newton's Lens",
+    "subtitle": "AI Lab Partner for Science Experiments",
+    "howItWorks": "How It Works"
+  },
+  "experimentTypes": {
+    "circuits": "Circuits & Electronics",
+    "chemistry": "Chemistry",
+    "physics": "Physics & Mechanics",
+    "general": "General Science"
+  },
+  "camera": {
+    "startCamera": "Start Camera",
+    "stopCamera": "Stop Camera",
+    "uploadImage": "Upload Image",
+    "analyzeSetup": "Analyze Setup",
+    "analyzing": "Analyzing...",
+    "tryAgain": "Try Again",
+    "uploadInstead": "Upload Instead",
+    "cameraError": "Unable to access camera. Please grant camera permissions.",
+    "uploadError": "Please select a valid image or video file"
+  },
+  "analysis": {
+    "noAnalysisYet": "No Analysis Yet",
+    "noAnalysisDescription": "Capture an image of your experiment setup to get started with AI-powered analysis.",
+    "analyzingSetup": "Analyzing your experiment setup...",
+    "estimatedTime": "Estimated time",
+    "observations": "Observations",
+    "components": "Components Detected",
+    "predictedOutcome": "Predicted Outcome",
+    "safetyWarnings": "Safety Warnings",
+    "guidance": "Step-by-Step Guidance",
+    "confidence": "Confidence Score"
+  },
+  "severity": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "guide": {
+    "title": "How It Works",
+    "step1": {
+      "title": "Select Type",
+      "description": "Choose your experiment category to get specialized analysis"
+    },
+    "step2": {
+      "title": "Capture Setup",
+      "description": "Use your camera to photograph your experiment setup"
+    },
+    "step3": {
+      "title": "AI Analysis",
+      "description": "Our AI identifies components and predicts outcomes"
+    },
+    "step4": {
+      "title": "Get Guidance",
+      "description": "Receive safety warnings and step-by-step instructions"
+    }
+  },
+  "video": {
+    "startRealTime": "Start Real-time Analysis",
+    "liveAnalysis": "LIVE ANALYSIS",
+    "framesAnalyzed": "Frames analyzed",
+    "startFrameAnalysis": "Start Frame Analysis",
+    "pauseAnalysis": "Pause Analysis",
+    "infoTitle": "Real-time Video Analysis",
+    "info1": "Analyzes 1 frame per second automatically",
+    "info2": "Provides continuous safety monitoring",
+    "info3": "Live warnings appear as issues are detected",
+    "info4": "Best for dynamic experiments and step-by-step setups"
+  },
+  "ar": {
+    "title": "AR Component Overlay",
+    "danger": "Danger",
+    "caution": "Caution",
+    "safe": "Safe",
+    "connectedTo": "Connected to",
+    "detectedComponents": "Detected Components",
+    "features": "AR Overlay Features",
+    "feature1": "Blue boxes highlight detected components",
+    "feature2": "Hover over labels for detailed information",
+    "feature3": "Border color indicates overall safety level",
+    "feature4": "Warning icons show problematic areas"
+  },
+  "voice": {
+    "title": "Voice-Guided Instructions",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "volume": "Volume",
+    "speed": "Speed",
+    "voice": "Voice",
+    "readFullAnalysis": "Read Full Analysis",
+    "readSafetyWarnings": "Read Safety Warnings",
+    "step": "Step",
+    "of": "of",
+    "notSupported": "Voice guidance is not supported in this browser",
+    "tip1": "Enable voice guidance for hands-free lab work",
+    "tip2": "Critical safety warnings are announced automatically"
+  },
+  "footer": {
+    "tagline": "Newton's Lens - Empowering students with AI-powered lab assistance"
+  }
+}
