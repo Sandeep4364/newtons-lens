@@ -93,6 +93,12 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
       const SEEK_PERCENTAGE = 0.1;
 
       video.onloadedmetadata = () => {
+        // Validate video duration is a finite positive number
+        if (!isFinite(video.duration) || video.duration <= 0) {
+          setError('Invalid video format or corrupted video file');
+          URL.revokeObjectURL(video.src);
+          return;
+        }
         // Seek to 1 second or 10% of video duration, whichever is smaller
         const seekTime = Math.min(MAX_SEEK_TIME_SECONDS, video.duration * SEEK_PERCENTAGE);
         video.currentTime = seekTime;

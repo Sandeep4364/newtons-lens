@@ -209,7 +209,7 @@ async function analyzeWithGemini(
   try {
     // Extract base64 data and detect mime type
     const base64Image = imageData.startsWith("data:") ? imageData.split(",")[1] : imageData;
-    const mimeType = imageData.match(/data:([^;]+);/)?.[1] || "image/jpeg";
+    const mimeType = imageData.match(/^data:([^;,]+)/)?.[1] || "image/jpeg";
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: "POST",
