@@ -14,6 +14,11 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
   const [error, setError] = useState<string>('');
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Constants for image/video processing
+  const JPEG_QUALITY = 0.8;
+  const MAX_SEEK_TIME_SECONDS = 1;
+  const SEEK_PERCENTAGE = 0.1;
+
   const startCamera = useCallback(async () => {
     try {
       setError('');
@@ -60,7 +65,7 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    const imageData = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
     onCapture(imageData);
   }, [onCapture]);
 
@@ -110,6 +115,60 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
 
     if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
       setError('Please select a valid image or video file');
+      return;
+    }
+
+    // Handle video files
+    if (file.type.startsWith('video/')) {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+
+      if (!context) {
+        setError('Failed to initialize video processing');
+        return;
+      }
+
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+
+      video.onloadedmetadata = () => {
+        // Validate video duration is a finite positive number
+        if (!isFinite(video.duration) || video.duration <= 0) {
+          setError('Invalid video format or corrupted video file');
+          URL.revokeObjectURL(video.src);
+          return;
+        }
+        // Seek to 1 second or 10% of video duration, whichever is smaller
+        const seekTime = Math.min(MAX_SEEK_TIME_SECONDS, video.duration * SEEK_PERCENTAGE);
+        video.currentTime = seekTime;
+      };
+
+      video.onseeked = () => {
+        try {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+          onCapture(imageData);
+          URL.revokeObjectURL(video.src);
+        } catch (err) {
+          setError('Failed to extract frame from video');
+          console.error('Video frame extraction error:', err);
+          URL.revokeObjectURL(video.src);
+        }
+      };
+
+      video.onerror = () => {
+        setError('Failed to load video file');
+        URL.revokeObjectURL(video.src);
+      };
+
+      video.src = URL.createObjectURL(file);
+      return;
+    }
+
       return;
     }
 
@@ -200,7 +259,7 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg flex items-center gap-2 transition-colors"
             >
               <Upload className="w-5 h-5" />
-              Upload Image
+              Upload Image/Video
             </button>
           </div>
         )}

@@ -207,7 +207,9 @@ async function analyzeWithGemini(
   }
 
   try {
-    const base64Image = imageData.startsWith("data:image") ? imageData.split(",")[1] : imageData;
+    // Extract base64 data and detect mime type
+    const base64Image = imageData.startsWith("data:") ? imageData.split(",")[1] : imageData;
+    const mimeType = imageData.match(/^data:([^;,]+)/)?.[1] || "image/jpeg";
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: "POST",
@@ -223,7 +225,7 @@ async function analyzeWithGemini(
               },
               {
                 inline_data: {
-                  mime_type: "image/jpeg",
+                  mime_type: mimeType,
                   data: base64Image,
                 },
               },
@@ -298,6 +300,9 @@ Deno.serve(async (req: Request) => {
       throw new Error("Missing Supabase environment variables");
     }
 
+    // Default confidence score when not provided by analysis
+    const DEFAULT_CONFIDENCE_SCORE = 0.8;
+
     const supabaseResponse = await fetch(`${supabaseUrl}/rest/v1/analysis_sessions`, {
       method: "POST",
       headers: {
@@ -309,14 +314,14 @@ Deno.serve(async (req: Request) => {
         experiment_id: data.experiment_id,
         image_data: data.image_data.substring(0, 5000),
         ai_observations: {
-          observations: analysis.observations,
-          components: analysis.components,
+          observations: analysis.observations || '',
+          components_summary: analysis.components?.length || 0
         },
-        predicted_outcome: analysis.predicted_outcome,
-        safety_warnings: analysis.safety_warnings,
-        guidance: analysis.guidance,
-        confidence_score: analysis.confidence_score,
-        status: 'completed',
+        predicted_outcome: analysis.predicted_outcome || '',
+        safety_warnings: analysis.safety_warnings || [],
+        guidance: analysis.guidance || [],
+        confidence_score: analysis.confidence_score || DEFAULT_CONFIDENCE_SCORE,
+        status: 'completed'
       }),
     });
 
