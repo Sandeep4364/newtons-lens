@@ -107,7 +107,7 @@ function App() {
         body: JSON.stringify({
           experiment_id: experiment.data.id,
           experiment_type: experimentType,
-          components: components,
+          components,
         }),
       });
 

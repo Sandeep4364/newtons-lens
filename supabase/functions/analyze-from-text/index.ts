@@ -300,7 +300,7 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         experiment_id: data.experiment_id,
         analysis_result: analysis,
-        image_data: '',  // No image for text-based analysis
+        image_data: '', // No image for text-based analysis
       }),
     });
 
