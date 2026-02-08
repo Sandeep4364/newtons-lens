@@ -3,12 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-// Check if Supabase is configured
+// Template values from .env.example that indicate unconfigured environment
+const TEMPLATE_VALUES = ['your_supabase_project_url', 'your_supabase_url', 'your_supabase_anon_key'];
+
+// Check if Supabase is properly configured (not empty and not template values)
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
   supabaseAnonKey && 
-  supabaseUrl !== 'your_supabase_project_url' &&
-  supabaseAnonKey !== 'your_supabase_anon_key'
+  !TEMPLATE_VALUES.includes(supabaseUrl) &&
+  !TEMPLATE_VALUES.includes(supabaseAnonKey)
 );
 
 // Validate environment variables
@@ -18,8 +21,8 @@ if (!isSupabaseConfigured) {
   );
 }
 
-// Create a placeholder Supabase client if not configured to prevent initialization errors
-// Use dummy values that won't cause the createClient to throw
+// Create a Supabase client. When not configured, use placeholder values to prevent initialization errors.
+// The app will show a configuration warning instead of attempting to use the client.
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
   supabaseAnonKey || 'placeholder-key'
