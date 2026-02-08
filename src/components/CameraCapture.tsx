@@ -169,40 +169,6 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
       return;
     }
 
-      return;
-    }
-
-    // Handle video files
-    if (file.type.startsWith('video/')) {
-      const videoElement = document.createElement('video');
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      videoElement.onloadedmetadata = async () => {
-        // Extract frame at 1 second or 10% of duration
-        videoElement.currentTime = Math.min(1, videoElement.duration * 0.1);
-      };
-      
-      videoElement.onseeked = async () => {
-        if (!ctx) return;
-        
-        canvas.width = videoElement.videoWidth;
-        canvas.height = videoElement.videoHeight;
-        ctx.drawImage(videoElement, 0, 0);
-        
-        const imageData = canvas.toDataURL('image/jpeg', 0.8);
-        const compressed = await compressImage(imageData);
-        onCapture(compressed);
-      };
-      
-      videoElement.onerror = () => {
-        setError('Failed to process video file');
-      };
-      
-      videoElement.src = URL.createObjectURL(file);
-      return;
-    }
-
     // Handle image files
     const reader = new FileReader();
     reader.onload = async (e) => {
