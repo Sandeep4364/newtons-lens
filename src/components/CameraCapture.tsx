@@ -116,6 +116,7 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
         } catch (err) {
           setError('Failed to extract frame from video');
           console.error('Video frame extraction error:', err);
+          URL.revokeObjectURL(video.src);
         }
       };
 
