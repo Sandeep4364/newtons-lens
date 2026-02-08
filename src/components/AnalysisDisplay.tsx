@@ -35,6 +35,15 @@ export function AnalysisDisplay({ session, capturedImage }: AnalysisDisplayProps
 
   if (!session) return null;
 
+  // Extract observations safely
+  const observations = 
+    session.ai_observations && 
+    typeof session.ai_observations === 'object' && 
+    'observations' in session.ai_observations && 
+    typeof session.ai_observations.observations === 'string' 
+      ? session.ai_observations.observations 
+      : null;
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
@@ -81,6 +90,18 @@ export function AnalysisDisplay({ session, capturedImage }: AnalysisDisplayProps
           </span>
         </div>
 
+        {observations && (
+          <div className="mb-6">
+            <h4 className="text-md font-semibold text-gray-800 mb-2 flex items-center gap-2">
+              <Info className="w-5 h-5 text-blue-600" />
+              Observations
+            </h4>
+            <p className="text-gray-700 bg-blue-50 p-4 rounded-lg">
+              {observations}
+            </p>
+          </div>
+        )}
+
         {session.predicted_outcome && (
           <div className="mb-6">
             <h4 className="text-md font-semibold text-gray-800 mb-2 flex items-center gap-2">
@@ -116,7 +137,7 @@ export function AnalysisDisplay({ session, capturedImage }: AnalysisDisplayProps
         )}
 
         {session.guidance && session.guidance.length > 0 && (
-          <div>
+          <div className="mb-6">
             <h4 className="text-md font-semibold text-gray-800 mb-3">Step-by-Step Guidance</h4>
             <ol className="space-y-3">
               {session.guidance.map((step, index) => (
@@ -128,6 +149,15 @@ export function AnalysisDisplay({ session, capturedImage }: AnalysisDisplayProps
                 </li>
               ))}
             </ol>
+          </div>
+        )}
+
+        {!observations && !session.predicted_outcome && (!session.safety_warnings || session.safety_warnings.length === 0) && (!session.guidance || session.guidance.length === 0) && (
+          <div className="text-center py-8">
+            <Info className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600">
+              Analysis completed but no detailed results were generated. This may indicate an issue with the analysis service.
+            </p>
           </div>
         )}
       </div>
