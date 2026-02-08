@@ -1,8 +1,45 @@
 import os
 import base64
 import json
-from typing import Dict, List, Any
+import time
+from typing import Dict, List, Any, Callable
+from functools import wraps
 import google.generativeai as genai
+
+
+def retry_on_failure(max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0):
+    """
+    Decorator to retry a function on failure with exponential backoff.
+    
+    Args:
+        max_attempts: Maximum number of retry attempts
+        delay: Initial delay between retries in seconds
+        backoff: Multiplier for delay after each retry
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            current_delay = delay
+            last_exception = None
+            
+            for attempt in range(max_attempts):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    if attempt < max_attempts - 1:
+                        print(f"Attempt {attempt + 1}/{max_attempts} failed: {str(e)}")
+                        print(f"Retrying in {current_delay} seconds...")
+                        time.sleep(current_delay)
+                        current_delay *= backoff
+                    else:
+                        print(f"All {max_attempts} attempts failed")
+            
+            # If all retries failed, raise the last exception
+            raise last_exception
+        
+        return wrapper
+    return decorator
 
 class ExperimentAnalyzer:
     def __init__(self):
@@ -27,23 +64,29 @@ class ExperimentAnalyzer:
                 image_data = image_data.split(',')[1]
 
             image_bytes = base64.b64decode(image_data)
-
             prompt = self._build_analysis_prompt(experiment_type)
-
-            response = self.model.generate_content([
-                prompt,
-                {'mime_type': 'image/jpeg', 'data': image_bytes}
-            ])
-
+            
+            # Call AI with retry logic
+            response = self._call_ai_with_retry(prompt, image_bytes)
             analysis_text = response.text
-
+            
             analysis = self._parse_ai_response(analysis_text, experiment_type)
-
             return analysis
 
         except Exception as e:
             print(f"AI Analysis error: {str(e)}")
             return self._mock_analysis(experiment_type)
+
+    @retry_on_failure(max_attempts=3, delay=1.0, backoff=2.0)
+    def _call_ai_with_retry(self, prompt: str, image_bytes: bytes):
+        """
+        Call Gemini AI with retry logic for transient failures.
+        Raises exception if all retries fail.
+        """
+        return self.model.generate_content([
+            prompt,
+            {'mime_type': 'image/jpeg', 'data': image_bytes}
+        ])
 
     def _build_analysis_prompt(self, experiment_type: str) -> str:
         base_prompt = """You are Newton's Lens, an expert AI lab assistant for science experiments.

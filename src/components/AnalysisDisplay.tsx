@@ -1,12 +1,14 @@
 import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react';
+import { LoadingSpinner } from './LoadingSpinner';
 import type { AnalysisSession } from '../lib/supabase';
 
 interface AnalysisDisplayProps {
   session: AnalysisSession | null;
   capturedImage: string | null;
+  isAnalyzing?: boolean;
 }
 
-export function AnalysisDisplay({ session, capturedImage }: AnalysisDisplayProps) {
+export function AnalysisDisplay({ session, capturedImage, isAnalyzing }: AnalysisDisplayProps) {
   if (!session && !capturedImage) {
     return (
       <div className="bg-white rounded-lg shadow-md p-8 text-center">
@@ -24,11 +26,18 @@ export function AnalysisDisplay({ session, capturedImage }: AnalysisDisplayProps
   if (!session && capturedImage) {
     return (
       <div className="bg-white rounded-lg shadow-md p-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-        </div>
+        {isAnalyzing ? (
+          <LoadingSpinner 
+            message="Analyzing your experiment setup..." 
+            estimatedTime={5}
+          />
+        ) : (
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          </div>
+        )}
       </div>
     );
   }
