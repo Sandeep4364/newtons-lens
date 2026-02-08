@@ -14,6 +14,11 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
   const [error, setError] = useState<string>('');
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Constants for image/video processing
+  const JPEG_QUALITY = 0.8;
+  const MAX_SEEK_TIME_SECONDS = 1;
+  const SEEK_PERCENTAGE = 0.1;
+
   const startCamera = useCallback(async () => {
     try {
       setError('');
@@ -60,7 +65,7 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    const imageData = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
     onCapture(imageData);
   }, [onCapture]);
 
@@ -88,10 +93,6 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
       video.muted = true;
       video.playsInline = true;
 
-      // Constants for video frame extraction
-      const MAX_SEEK_TIME_SECONDS = 1;
-      const SEEK_PERCENTAGE = 0.1;
-
       video.onloadedmetadata = () => {
         // Validate video duration is a finite positive number
         if (!isFinite(video.duration) || video.duration <= 0) {
@@ -109,7 +110,7 @@ export function CameraCapture({ onCapture, isAnalyzing }: CameraCaptureProps) {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const imageData = canvas.toDataURL('image/jpeg', 0.8);
+          const imageData = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
           onCapture(imageData);
           URL.revokeObjectURL(video.src);
         } catch (err) {
